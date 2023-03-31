@@ -1,0 +1,6 @@
+/auth-service/node_modules
+/auth-service/.env
+/backend/node_modules
+/backend/.env
+/client/node_modules
+/backend/build/*

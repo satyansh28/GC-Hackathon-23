@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  node_backend:
+    container_name: backend
+    
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile 
+    network_mode: "host"
+   
+  auth_backend:
+    container_name: auth_service
+    build: 
+      context: ./auth-service
+      dockerfile: Dockerfile
+    network_mode: "host"
