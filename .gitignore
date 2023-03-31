@@ -4,3 +4,4 @@
 /backend/.env
 /client/node_modules
 /backend/build/*
+/client/.env

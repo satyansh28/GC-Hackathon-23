@@ -1,6 +1,5 @@
 const express = require('express')
 const cookieParser = require('cookie-parser');
-const cors= require("cors");
 const app = express();
 const path = require("path")
 let Pusher = require('pusher');
@@ -12,7 +11,7 @@ const auth=require('./middle-ware/auth')
 require("dotenv").config();
 const mongoose=require("mongoose")
 const MONGODB_URI = process.env.MONGODB_URI;
-
+const frontend= process.env.FRONTEND;
 mongoose
   .connect(MONGODB_URI, {
     useNewUrlParser: true,
@@ -41,15 +40,22 @@ let pusher = new Pusher({
 	secret:  process.env.SECRET,
 	cluster: process.env.CLUSTER
   });
-
+  const cors=(req,res,next)=>{
+	res.header("Access-Control-Allow-Origin", process.env.FRONTEND);
+	res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,PATCH,DELETE");
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+	res.header("Access-Control-Allow-Credentials",true);
+	res.header("Access-Control-Expose-Headers","set-cookie");
+	next();
+  }
 app.use(cookieParser());
-app.use(cors())
+app.use(cors)
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 
 app.use(express.static(__dirname+"/build"))
-
+app.options("*",(req,res)=>{res.status(200).send()});
 app.post('/pusher/auth',(req, res)=> {
   let socketId = req.body.socket_id;
   let channel = req.body.channel_name;

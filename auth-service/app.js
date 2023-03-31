@@ -4,7 +4,7 @@ const cookieParser = require('cookie-parser');
 
 const authRoutes = require("./routes/authRoutes");
 const cors=(req,res,next)=>{
-  res.header("Access-Control-Allow-Origin", process.env.FRONTEND || "localhost");
+  res.header("Access-Control-Allow-Origin", process.env.FRONTEND);
   res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,PATCH,DELETE");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   res.header("Access-Control-Allow-Credentials",true);
