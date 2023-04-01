@@ -58,6 +58,7 @@ class Video extends Component {
     this.audioAvailable = false;
     this.numberOfStreams = [];
     this.participantInfoMapping = [];
+    this.authorized = false;
     this.state = {
       video: false,
       audio: false,
@@ -124,6 +125,9 @@ class Video extends Component {
     }
   };
   componentDidUpdate(prevProps, prevState) {
+    if (prevState.authorized !== this.state.authorized) {
+      console.log("authorized value changed triiger rerender");
+    }
     if (prevState.showModal !== this.state.showModal) {
       console.log(
         "show modal value updated",
@@ -132,24 +136,29 @@ class Video extends Component {
       );
     }
   }
-  componentDidMount() {
+  async componentDidMount() {
     console.log("component mounted!");
     let strintSplitArray = window.location.href.split("/");
     console.log(strintSplitArray, "string split");
-    axios
-      .post(
+    try {
+      const response = await axios.post(
         `${config.REACT_APP_BACKENDURI}/joinRoom`,
         {
           roomId: strintSplitArray[4],
         },
         { withCredentials: true }
-      )
-      .then(function (response) {
-        console.log(response);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
+      );
+      console.log(response);
+      if (response.status === 200) {
+        this.setState({ authorized: true });
+      } else {
+        window.alert("You are not authorized to join this room");
+      }
+    } catch (e) {
+      console.log(e);
+      window.alert("You are not authorized to join this room");
+      window.location.href = "/";
+    }
   }
 
   getMedia = () => {
@@ -580,6 +589,9 @@ class Video extends Component {
           <h2>Error:chromium.rtc() not found!</h2>
         </div>
       );
+    }
+    if (this.state.authorized === false) {
+      return <div>Loading</div>;
     }
     return (
       <div>

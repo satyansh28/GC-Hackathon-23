@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
-import axios from "axios"
-const config = require('../../config')
+import axios from "axios";
+const config = require("../../config");
 const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
@@ -34,37 +34,46 @@ const Form = ({ handleClose, handleClose2 }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log(firstName, lastName, email, password);
-    axios.post(`${config.REACT_APP_AUTHURI}/auth/signup`, {
-      name: firstName,
-      email: email,
-      password: password,
-      passwordConfirm: password
-    }).then((response) => {
-      console.log(response)
-      if (response.status === 200)
-        window.alert("verfication mail has been sent")
-      else window.alert("something went wrong!")
-
-    }).catch((errr) => {
-      console.log(errr)
-    })
+    axios
+      .post(`${config.REACT_APP_AUTHURI}/auth/signup`, {
+        name: firstName,
+        email: email,
+        password: password,
+        passwordConfirm: password,
+      })
+      .then((response) => {
+        console.log(response);
+        if (response.status === 200)
+          window.alert("verfication mail has been sent");
+        else window.alert("something went wrong!");
+      })
+      .catch((errr) => {
+        console.log(errr);
+        window.alert("something went wrong!");
+      });
     handleClose2();
   };
   const handleLogin = (e) => {
     e.preventDefault();
-    loginMode && axios.post(`${config.REACT_APP_AUTHURI}/auth/login`, {
-      email: email,
-      password: password,
-    }, { withCredentials: true }).then((response) => {
-      console.log(response)
-      if (response.status === 200)
-        window.alert("successfully logged in")
-      else window.alert("something went wrong!")
-      handleClose2();
-
-    }).catch((errr) => {
-      console.log(errr)
-    })
+    loginMode &&
+      axios
+        .post(
+          `${config.REACT_APP_AUTHURI}/auth/login`,
+          {
+            email: email,
+            password: password,
+          },
+          { withCredentials: true }
+        )
+        .then((response) => {
+          console.log(response);
+          if (response.status === 200) window.alert("successfully logged in");
+          else window.alert("something went wrong!");
+          handleClose2();
+        })
+        .catch((errr) => {
+          console.log(errr);
+        });
     setLoginMode(true);
   };
   return (

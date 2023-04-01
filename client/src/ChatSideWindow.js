@@ -59,21 +59,35 @@ export default function TemporaryDrawer(props) {
           <p>No message yet</p>
         )}
       </div>
-      <div style={{ textAlign: "center" }}>
+      <div
+        style={{
+          textAlign: "center",
+          position: "absolute",
+          bottom: "0",
+          width: "100%",
+        }}
+      >
         <TextField
           id="full-width-text-field"
           placeholder="Message"
           InputLabelProps={{ style: { padding: "10px" } }}
+          onKeyDown={(ev) => {
+            console.log(`Pressed keyCode ${ev.key}`);
+            if (ev.key === "Enter") {
+              ev.preventDefault();
+              props.sendMessage();
+              setMessage("");
+            }
+          }}
           helperText="Type and send message "
           margin="normal"
-          fullWidth // this may override your custom width
           onChange={(e) => {
             props.handleMessage(e);
             setMessage(e.target.value);
           }}
           value={message}
-          style={{ padding: "10px" }}
-          InputProps={{      
+          style={{ padding: "10px", width: "90%" }}
+          InputProps={{
             endAdornment: (
               <SendIcon
                 onClick={() => {
@@ -122,5 +136,3 @@ export default function TemporaryDrawer(props) {
     </div>
   );
 }
-
-
