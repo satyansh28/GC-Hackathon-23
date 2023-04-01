@@ -77,6 +77,7 @@ class Video extends Component {
       numberOfStreams: [],
       participantInfoMapping: [],
       authorized: false,
+      isAdmin:false,
       flip:false
     };
     connections = {};
@@ -152,7 +153,8 @@ class Video extends Component {
       );
       console.log(response);
       if (response.status === 200) {
-        this.setState({ authorized: true });
+        this.setState({ authorized: true,isAdmin:(response.data.isAdmin || response.data.isCreator)});
+
         this.getPermissions();
       } else {
         window.alert("You are not authorized to join this room");
@@ -322,7 +324,7 @@ class Video extends Component {
       if(data==="video")
         this.setState({ video: false },() => this.getUserMedia());
       if(data==="remove")
-        console.log("disconnect");
+        window.location.href="/";
     })
     socket.on("connect", () => {
       socket.emit("join-call", window.location.href);
@@ -794,17 +796,15 @@ class Video extends Component {
                       muted
                     ></video>
                   </Grid>
-                  {console.log("how many streams:",this.numberOfStreams.length)}
                   {this.numberOfStreams.map((item) => {
                     return (
                       <Grid item xs={12} md={6} style={{ maxWidth: "500px" }}>
-                        <VideoOptionButton
+                        {this.state.isAdmin && <VideoOptionButton
                           sockid={item}
                           handleAdmin={(data,sockid) => {
-                            console.log("admin fnc trigger");
                             this.adminfunc(data,sockid);
                           }}
-                        />
+                        />}
                         <video
                           data-socket={item}
                           id="my-video"

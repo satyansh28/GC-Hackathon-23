@@ -67,7 +67,8 @@ app.post('/createRoom',auth.checkLogin,async(req,res)=>{
 		creatorEmail : req.user.email,
 		allowAll: req.body.allowAll,
 		allowedEmails: req.body.allowedEmails,
-		roomId: req.body.roomId
+		roomId: req.body.roomId,
+		adminEmails: req.body.adminEmails
 	};
 	const newRoom=await room.create(room_obj);
 	if(newRoom)
@@ -79,7 +80,7 @@ app.post('/joinRoom',auth.checkLogin,async(req,res)=>{
 	const userEmail=req.user.email;
 	const room_obj=await room.findOne({roomId: req.body.roomId});
 	if(room_obj && (room_obj.allowAll || room_obj.creatorEmail===userEmail || room_obj.allowedEmails.includes(userEmail)))
-		res.status(200).send({isCreator:(room_obj.creatorEmail===userEmail),err:false});
+		res.status(200).send({isAdmin:room_obj.adminEmails.includes(userEmail),isCreator:(room_obj.creatorEmail===userEmail),err:false});
 	else
 		res.status(400).send({err:true});
 })

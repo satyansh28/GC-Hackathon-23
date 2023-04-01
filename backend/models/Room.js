@@ -17,6 +17,10 @@ const room_schema=new schema({
     allowedEmails:{
         type:Array,
         default:[]
+    },
+    adminEmails:{
+        type:Array,
+        default:[]
     }
 },{timestamps:true});
 
