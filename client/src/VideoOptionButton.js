@@ -96,7 +96,7 @@ export default function CustomizedMenus(props) {
           onClick={(e) => {
             e.preventDefault();
             handleClose();
-            props.handleAdmin("mute");
+            props.handleAdmin("mute",props.sockid);
           }}
           disableRipple
         >
@@ -106,7 +106,7 @@ export default function CustomizedMenus(props) {
           onClick={(e) => {
             e.preventDefault();
             handleClose();
-            props.handleAdmin("video");
+            props.handleAdmin("video",props.sockid);
           }}
           disableRipple
         >
@@ -116,7 +116,7 @@ export default function CustomizedMenus(props) {
           onClick={(e) => {
             e.preventDefault();
             handleClose();
-            props.handleAdmin("remove");
+            props.handleAdmin("remove",props.sockid);
           }}
           disableRipple
         >

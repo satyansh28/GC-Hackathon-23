@@ -2,7 +2,7 @@ const express = require('express')
 const cookieParser = require('cookie-parser');
 const app = express();
 const path = require("path")
-let Pusher = require('pusher');
+//let Pusher = require('pusher');
 const http = require('http');
 let xss = require("xss");
 const { default: cluster } = require('cluster');
@@ -34,12 +34,12 @@ let io = require("socket.io")(server, {
   });
 
 
-let pusher = new Pusher({
-	appId: process.env.APPID,
-	key: process.env.KEY,
-	secret:  process.env.SECRET,
-	cluster: process.env.CLUSTER
-  });
+// let pusher = new Pusher({
+// 	appId: process.env.APPID,
+// 	key: process.env.KEY,
+// 	secret:  process.env.SECRET,
+// 	cluster: process.env.CLUSTER
+//   });
   const cors=(req,res,next)=>{
 	res.header("Access-Control-Allow-Origin", process.env.FRONTEND);
 	res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,PATCH,DELETE");
@@ -56,12 +56,12 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(express.static(__dirname+"/build"))
 app.options("*",(req,res)=>{res.status(200).send()});
-app.post('/pusher/auth',(req, res)=> {
-  let socketId = req.body.socket_id;
-  let channel = req.body.channel_name;
-  let auth = pusher.authenticate(socketId, channel);
-  res.send(auth);
-});
+// app.post('/pusher/auth',(req, res)=> {
+//   let socketId = req.body.socket_id;
+//   let channel = req.body.channel_name;
+//   let auth = pusher.authenticate(socketId, channel);
+//   res.send(auth);
+// });
 app.post('/createRoom',auth.checkLogin,async(req,res)=>{
 	const room_obj={
 		creatorEmail : req.user.email,
@@ -125,7 +125,27 @@ io.on('connection', (socket) => {
 	socket.on('signal', (toId, message) => {
 		io.to(toId).emit('signal', socket.id, message)
 	})
+	socket.on('change-other', (data,sockid) => {
+		data = sanitizeString(data)
+		sockid = sanitizeString(sockid)
 
+		let key
+		let ok = false
+		for (const [k, v] of Object.entries(connections)) {
+			for(let a = 0; a < v.length; ++a){
+				if(v[a] === socket.id){
+					key = k
+					ok = true
+				}
+			}
+		}
+
+		if(ok){
+			for(let a = 0; a < connections[key].length; ++a){
+				io.to(connections[key][a]).emit("admin-commanded", data,sockid)
+			}
+		}
+	})
 	socket.on('chat-message', (data, sender) => {
 		data = sanitizeString(data)
 		sender = sanitizeString(sender)

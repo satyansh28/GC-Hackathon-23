@@ -77,6 +77,7 @@ class Video extends Component {
       numberOfStreams: [],
       participantInfoMapping: [],
       authorized: false,
+      flip:false
     };
     connections = {};
 
@@ -152,6 +153,7 @@ class Video extends Component {
       console.log(response);
       if (response.status === 200) {
         this.setState({ authorized: true });
+        this.getPermissions();
       } else {
         window.alert("You are not authorized to join this room");
       }
@@ -312,18 +314,30 @@ class Video extends Component {
     console.log(server_url);
 
     socket.on("signal", this.gotMessageFromServer);
-
+    socket.on("admin-commanded",async(data,sockid)=>{
+      if(sockid!==socket.id)
+        return;
+      if(data==="mute")
+        this.setState({ audio: false }, () => this.getUserMedia());
+      if(data==="video")
+        this.setState({ video: false },() => this.getUserMedia());
+      if(data==="remove")
+        console.log("disconnect");
+    })
     socket.on("connect", () => {
       socket.emit("join-call", window.location.href);
       socketId = socket.id;
 
       socket.on("chat-message", this.addMessage);
 
+
+
       socket.on("user-left", (id) => {
-        let video = document.querySelector(`[data-socket="${id}"]`);
-        if (video !== null) {
-          elms--;
-          video.parentNode.removeChild(video);
+        let index=this.numberOfStreams.indexOf(id);
+        if(index!==-1)
+        {
+          this.numberOfStreams.splice(index);
+          this.setState({flip:!this.state.flip})
         }
       });
 
@@ -523,6 +537,10 @@ class Video extends Component {
   };
 
   handleUsername = (e) => this.setState({ username: e.target.value });
+
+  adminfunc= (data,sockid)=>{
+    socket.emit("change-other",data,sockid);
+  }
 
   sendMessage = () => {
     socket.emit("chat-message", this.state.message, this.state.username);
@@ -776,13 +794,15 @@ class Video extends Component {
                       muted
                     ></video>
                   </Grid>
-                  {/* governn my own video stream */}
+                  {console.log("how many streams:",this.numberOfStreams.length)}
                   {this.numberOfStreams.map((item) => {
                     return (
                       <Grid item xs={12} md={6} style={{ maxWidth: "500px" }}>
                         <VideoOptionButton
-                          handleAdmin={() => {
-                            console.log("admin fnc here");
+                          sockid={item}
+                          handleAdmin={(data,sockid) => {
+                            console.log("admin fnc trigger");
+                            this.adminfunc(data,sockid);
                           }}
                         />
                         <video
