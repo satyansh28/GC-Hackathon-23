@@ -43,13 +43,17 @@ export default function TemporaryDrawer(props) {
   const list = (anchor) => (
     <Box
       // sx={{ width: anchor === "top" || anchor === "bottom" ? "auto" : 250 }}
-      role="presentation"
-      style={{ padding: "10px" }}
     >
-      <div style={{ width: "100%" }}>
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          // overflow: "auto",
+        }}
+      >
         {props.messages.length > 0 ? (
           props.messages.map((item, index) => (
-            <div key={index} style={{ textAlign: "left" }}>
+            <div key={index} style={{ textAlign: "left", paddingLeft: "20px" }}>
               <p style={{ wordBreak: "break-all" }}>
                 <b>{item.sender}</b> <div>{item.data}</div>
               </p>
@@ -62,8 +66,6 @@ export default function TemporaryDrawer(props) {
       <div
         style={{
           textAlign: "center",
-          position: "absolute",
-          bottom: "0",
           width: "100%",
         }}
       >

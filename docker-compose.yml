@@ -2,16 +2,16 @@ version: "3.9"
 services:
   node_backend:
     container_name: backend
-    #image: backend-gc-sde-hackthon:v3
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile 
+    image: backend-gc-sde-hackthon:v4
+    # build: 
+    #   context: ./backend
+    #   dockerfile: Dockerfile 
     network_mode: "host"
    
   auth_backend:
     container_name: auth_service
-    #image: authservice-gc-sde-hackthon:v3
-    build: 
-      context: ./auth-service
-      dockerfile: Dockerfile
+    image: authservice-gc-sde-hackthon:v4
+    # build: 
+    #   context: ./auth-service
+    #   dockerfile: Dockerfile
     network_mode: "host"
