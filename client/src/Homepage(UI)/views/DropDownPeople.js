@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Stack } from "@mui/material";
+import { ListItemText, Stack } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -14,6 +14,7 @@ import Select from "@mui/material/Select";
 import axios from "axios";
 import { TextField } from "@mui/material";
 import Button from "@material-ui/core/Button";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 const { v4: uuidV4 } = require("uuid");
 const config = require("../../config");
 const ITEM_HEIGHT = 48;
@@ -39,18 +40,21 @@ function getStyles(name, personName, theme) {
 export default function MultipleSelect(props) {
   const theme = useTheme();
   const [email, setEmail] = React.useState([]);
+  const [adminEmail, setAdminEmail] = React.useState([]);
   const [currentEmail, setCurrentEmail] = React.useState("");
   const [bkl, setbkl] = React.useState(false);
   React.useEffect(() => {
     console.log("re render here");
   }, [email, bkl]);
   const handleEmailList = async () => {
+    console.log(adminEmail, email, "admin emails and normal emails");
     const result = await axios.post(
       `${config.REACT_APP_BACKENDURI}/createRoom`,
       {
         roomId: props.roomId,
         allowAll: false,
         allowedEmails: email,
+        adminEmails: adminEmail,
       },
       { withCredentials: true }
     );
@@ -94,19 +98,10 @@ export default function MultipleSelect(props) {
           return (
             <ListItem
               secondaryAction={
-                <IconButton
-                  edge="end"
-                  aria-label="delete"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    console.log(index);
-                    const prevEmail = email;
-                    if (prevEmail.length) prevEmail.splice(index, 1);
-                    setEmail(prevEmail);
-                    setbkl(!bkl);
-                  }}
-                >
-                  <DeleteIcon
+                <div>
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
                     onClick={(e) => {
                       e.preventDefault();
                       console.log(index);
@@ -115,14 +110,76 @@ export default function MultipleSelect(props) {
                       setEmail(prevEmail);
                       setbkl(!bkl);
                     }}
-                  />
-                </IconButton>
+                  >
+                    <DeleteIcon
+                      onClick={(e) => {
+                        e.preventDefault();
+                        console.log(index);
+                        const prevEmail = email;
+                        if (prevEmail.length) prevEmail.splice(index, 1);
+                        setEmail(prevEmail);
+                        setbkl(!bkl);
+                      }}
+                    />
+                  </IconButton>
+                  <IconButton>
+                    <AdminPanelSettingsIcon
+                      onClick={(e) => {
+                        e.preventDefault();
+                        console.log(index);
+                        const prevEmail = adminEmail;
+                        prevEmail.push(emailx);
+                        setAdminEmail(prevEmail);
+                        setbkl(!bkl);
+                      }}
+                    />
+                  </IconButton>
+                </div>
               }
             >
               {emailx}
             </ListItem>
           );
         })}
+          <div style={{ fontWeight: "700", fontSize: "20px" }}>
+            Admins For Given Meet :
+          </div>{" "}
+        {adminEmail.map((emailx, index) => {
+          return (
+            <ListItem
+              secondaryAction={
+                <div>
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log(index);
+                      const prevEmail = adminEmail;
+                      if (prevEmail.length) prevEmail.splice(index, 1);
+                      setAdminEmail(prevEmail);
+                      setbkl(!bkl);
+                    }}
+                  >
+                    <DeleteIcon
+                      onClick={(e) => {
+                        e.preventDefault();
+                        console.log(index);
+                        const prevEmail = adminEmail;
+                        if (prevEmail.length) prevEmail.splice(index, 1);
+                        setAdminEmail(prevEmail);
+                        setbkl(!bkl);
+                      }}
+                    />
+                  </IconButton>
+                </div>
+              }
+            >
+              {emailx}
+            </ListItem>
+          );
+        })}
+
         <Button
           onClick={(e) => {
             e.preventDefault();
