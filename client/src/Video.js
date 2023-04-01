@@ -1,39 +1,29 @@
-
-
 import React, { Component } from "react";
 import { io } from "socket.io-client";
 import faker from "faker";
-import axios from "axios"
+import axios from "axios";
 import { IconButton, Badge, Input, Button } from "@material-ui/core";
 import VideocamIcon from "@material-ui/icons/Videocam";
 import Container from "@material-ui/core/Container";
 import VideocamOffIcon from "@material-ui/icons/VideocamOff";
 import { experimentalStyled as styled } from "@mui/material/styles";
-import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
-
-import PresentToAllIcon from '@mui/icons-material/PresentToAll';
-import CancelPresentationIcon from '@mui/icons-material/CancelPresentation';
+import ChatSideWindow from "./ChatSideWindow";
+import PresentToAllIcon from "@mui/icons-material/PresentToAll";
+import CancelPresentationIcon from "@mui/icons-material/CancelPresentation";
 import Grid from "@mui/material/Grid";
 import MicIcon from "@material-ui/icons/Mic";
 import MicOffIcon from "@material-ui/icons/MicOff";
-import ScreenShareIcon from "@material-ui/icons/ScreenShare";
-import StopScreenShareIcon from "@material-ui/icons/StopScreenShare";
 import CallEndIcon from "@material-ui/icons/CallEnd";
 import ChatIcon from "@material-ui/icons/Chat";
 import ShareIcon from "@mui/icons-material/Share";
-import FileCopyIcon from "@material-ui/icons/FileCopy";
-import FiberManualRecordIcon from "@material-ui/icons/FiberManualRecord";
-import VideoCallComponent from "./VideoCallComponent";
 import { message } from "antd";
 import "antd/dist/antd.css";
-
-import { Row } from "reactstrap";
-import Modal from "react-bootstrap/Modal";
+import AllParticipants from "./AllParticipants";
 import "bootstrap/dist/css/bootstrap.css";
 import "./Video.css";
 
-const config = require('./config')
+const config = require("./config");
 //Uncomment during production
 
 //For development mode
@@ -67,6 +57,7 @@ class Video extends Component {
     this.videoAvailable = false;
     this.audioAvailable = false;
     this.numberOfStreams = [];
+    this.participantInfoMapping = [];
     this.state = {
       video: false,
       audio: false,
@@ -82,6 +73,7 @@ class Video extends Component {
       fileshare: false,
       record_option: false,
       numberOfStreams: [],
+      participantInfoMapping: [],
       authorized: false,
     };
     connections = {};
@@ -116,21 +108,42 @@ class Video extends Component {
           .then((stream) => {
             window.localStream = stream;
             this.localVideoref.current.srcObject = stream;
+            const prevMapping = this.participantInfoMapping;
+            prevMapping.push({
+              ref: this.localVideoref,
+              userName: this.state.username,
+              video: this.videoAvailable,
+            });
+            this.setState({ participantInfoMapping: prevMapping });
           })
-          .then((stream) => { })
+          .then((stream) => {})
           .catch((e) => console.log(e));
       }
     } catch (e) {
       console.log(e);
     }
   };
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.showModal !== this.state.showModal) {
+      console.log(
+        "show modal value updated",
+        prevState.showModal,
+        this.state.showModal
+      );
+    }
+  }
   componentDidMount() {
-    console.log("component mounted!")
+    console.log("component mounted!");
     let strintSplitArray = window.location.href.split("/");
-    console.log(strintSplitArray, "string split")
-    axios.post(`${config.REACT_APP_BACKENDURI}/joinRoom`, {
-      roomId: strintSplitArray[4]
-    }, { withCredentials: true })
+    console.log(strintSplitArray, "string split");
+    axios
+      .post(
+        `${config.REACT_APP_BACKENDURI}/joinRoom`,
+        {
+          roomId: strintSplitArray[4],
+        },
+        { withCredentials: true }
+      )
       .then(function (response) {
         console.log(response);
       })
@@ -138,6 +151,7 @@ class Video extends Component {
         console.log(error);
       });
   }
+
   getMedia = () => {
     this.setState(
       {
@@ -159,14 +173,14 @@ class Video extends Component {
       navigator.mediaDevices
         .getUserMedia({ video: this.state.video, audio: this.state.audio })
         .then(this.getUserMediaSuccess)
-        .then((stream) => { })
+        .then((stream) => {})
         .catch((e) => console.log(e));
     } else {
       try {
         console.log("audio off video off");
         let tracks = this.localVideoref.current.srcObject.getTracks();
         tracks.forEach((track) => (track.enabled = false));
-      } catch (e) { }
+      } catch (e) {}
     }
   };
   getUserMediaSuccess = (stream) => {
@@ -200,51 +214,48 @@ class Video extends Component {
 
     stream.getTracks().forEach(
       (track) =>
-      (track.onended = () => {
-        this.setState(
-          {
-            video: false,
-            audio: false,
-          },
-          () => {
-            try {
-              let tracks = this.localVideoref.current.srcObject.getTracks();
-              tracks.forEach((track) => track.stop());
-            } catch (e) {
-              console.log(e);
+        (track.onended = () => {
+          this.setState(
+            {
+              video: false,
+              audio: false,
+            },
+            () => {
+              try {
+                let tracks = this.localVideoref.current.srcObject.getTracks();
+                tracks.forEach((track) => track.stop());
+              } catch (e) {
+                console.log(e);
+              }
+
+              let blackSilence = (...args) =>
+                new MediaStream([this.black(...args), this.silence()]);
+              window.localStream = blackSilence();
+              this.localVideoref.current.srcObject = window.localStream;
+
+              for (let id in connections) {
+                connections[id].addStream(window.localStream);
+
+                connections[id].createOffer().then((description) => {
+                  connections[id]
+                    .setLocalDescription(description)
+                    .then(() => {
+                      socket.emit(
+                        "signal",
+                        id,
+                        JSON.stringify({
+                          sdp: connections[id].localDescription,
+                        })
+                      );
+                    })
+                    .catch((e) => console.log(e));
+                });
+              }
             }
-
-            let blackSilence = (...args) =>
-              new MediaStream([this.black(...args), this.silence()]);
-            window.localStream = blackSilence();
-            this.localVideoref.current.srcObject = window.localStream;
-
-            for (let id in connections) {
-              connections[id].addStream(window.localStream);
-
-              connections[id].createOffer().then((description) => {
-                connections[id]
-                  .setLocalDescription(description)
-                  .then(() => {
-                    socket.emit(
-                      "signal",
-                      id,
-                      JSON.stringify({
-                        sdp: connections[id].localDescription,
-                      })
-                    );
-                  })
-                  .catch((e) => console.log(e));
-              });
-            }
-          }
-        );
-      })
+          );
+        })
     );
   };
-
-
-
 
   gotMessageFromServer = (fromId, message) => {
     var signal = JSON.parse(message);
@@ -303,7 +314,6 @@ class Video extends Component {
         if (video !== null) {
           elms--;
           video.parentNode.removeChild(video);
-
         }
       });
 
@@ -333,8 +343,15 @@ class Video extends Component {
             } else {
               elms = clients.length;
               const prevNumberOfClients = this.numberOfStreams;
+              const prevMapping = this.participantInfoMapping;
+              prevMapping.push({
+                dataSocketItem: socketListId,
+                userName: this.state.username,
+                video: this.videoAvailable,
+              });
               prevNumberOfClients.push(socketListId);
               this.setState({ numberOfStreams: prevNumberOfClients });
+              this.setState({ participantInfoMapping: prevMapping });
               console.log(this.numberOfStreams, "number of streams");
             }
           };
@@ -357,7 +374,7 @@ class Video extends Component {
 
             try {
               connections[id2].addStream(window.localStream);
-            } catch (e) { }
+            } catch (e) {}
 
             connections[id2].createOffer().then((description) => {
               connections[id2]
@@ -400,7 +417,7 @@ class Video extends Component {
         navigator.mediaDevices
           .getDisplayMedia({ video: true, audio: true })
           .then(this.getDislayMediaSuccess)
-          .then((stream) => { })
+          .then((stream) => {})
           .catch((e) => console.log(e));
       }
     }
@@ -436,28 +453,28 @@ class Video extends Component {
 
     stream.getTracks().forEach(
       (track) =>
-      (track.onended = () => {
-        this.setState(
-          {
-            screen: false,
-          },
-          () => {
-            try {
-              let tracks = this.localVideoref.current.srcObject.getTracks();
-              tracks.forEach((track) => track.stop());
-            } catch (e) {
-              console.log(e);
+        (track.onended = () => {
+          this.setState(
+            {
+              screen: false,
+            },
+            () => {
+              try {
+                let tracks = this.localVideoref.current.srcObject.getTracks();
+                tracks.forEach((track) => track.stop());
+              } catch (e) {
+                console.log(e);
+              }
+
+              let blackSilence = (...args) =>
+                new MediaStream([this.black(...args), this.silence()]);
+              window.localStream = blackSilence();
+              this.localVideoref.current.srcObject = window.localStream;
+
+              this.getUserMedia();
             }
-
-            let blackSilence = (...args) =>
-              new MediaStream([this.black(...args), this.silence()]);
-            window.localStream = blackSilence();
-            this.localVideoref.current.srcObject = window.localStream;
-
-            this.getUserMedia();
-          }
-        );
-      })
+          );
+        })
     );
   };
 
@@ -473,12 +490,15 @@ class Video extends Component {
     try {
       let tracks = this.localVideoref.current.srcObject.getTracks();
       tracks.forEach((track) => track.stop());
-    } catch (e) { }
+    } catch (e) {}
     window.location.href = "/";
   };
 
   //Chat Functionality
-  openChat = () => this.setState({ showModal: true, newmessages: 0 });
+  openChat = () => {
+    console.log("open chat function called");
+    this.setState({ showModal: true, newmessages: 0 });
+  };
   closeChat = () => this.setState({ showModal: false });
   handleMessage = (e) => this.setState({ message: e.target.value });
 
@@ -539,8 +559,6 @@ class Video extends Component {
     // return matchChrome !== null || matchFirefox !== null
     return matchChrome !== null;
   };
-
-
 
   render() {
     if (this.isChrome() === false) {
@@ -662,7 +680,6 @@ class Video extends Component {
                   onClick={this.handleScreen}
                 >
                   {this.state.screen === true ? (
-
                     <CancelPresentationIcon />
                   ) : (
                     <PresentToAllIcon />
@@ -675,7 +692,6 @@ class Video extends Component {
                 max={999}
                 color="secondary"
                 onClick={this.openChat}
-
               >
                 <IconButton
                   style={{ color: "#424242" }}
@@ -685,57 +701,14 @@ class Video extends Component {
                 </IconButton>
               </Badge>
             </div>
-
-            <Modal
-              show={this.state.showModal}
-              onHide={this.closeChat}
-              style={{ zIndex: "999999" }}
-            >
-              <Modal.Header closeButton>
-                <Modal.Title>Chat Room</Modal.Title>
-              </Modal.Header>
-              <Modal.Body
-                style={{
-                  overflow: "auto",
-                  overflowY: "auto",
-                  height: "400px",
-                  textAlign: "left",
-                }}
-              >
-                {this.state.messages.length > 0 ? (
-                  this.state.messages.map((item, index) => (
-                    <div key={index} style={{ textAlign: "left" }}>
-                      <p style={{ wordBreak: "break-all" }}>
-                        <b>{item.sender}</b>: {item.data}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p>No message yet</p>
-                )}
-              </Modal.Body>
-              <Modal.Footer className="div-send-msg">
-                <Input
-                  placeholder="Message"
-                  value={this.state.message}
-                  onChange={(e) => this.handleMessage(e)}
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={this.sendMessage}
-                >
-                  Send
-                </Button>
-              </Modal.Footer>
-            </Modal>
-
-            <div
-              className="container"
-              style={{
-                backgroundImage: `url('https://images.unsplash.com/photo-1584531979583-18c5c4b25efc?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=334&q=80')`,
-              }}
-            >
+            {console.log(this.state.showModal, "this state modal")}
+            <ChatSideWindow
+              rightOpen={this.state.showModal}
+              messages={this.state.messages}
+              handleMessage={this.handleMessage}
+              sendMessage={this.sendMessage}
+            />
+            <div className="container">
               <div
                 style={{
                   paddingTop: "20px",
@@ -757,13 +730,12 @@ class Video extends Component {
                 </Button>
               </div>
 
-            
               <Container
                 style={{ textAlign: "center" }}
                 component="section"
                 maxWidth="100%"
               >
-                <Grid container rowSpacing={1} alignItems="stretch">
+                <Grid container rowSpacing={1} alignItems="center" justifyContent="space-evenly">
                   <Grid
                     item
                     xs={12}
@@ -775,7 +747,8 @@ class Video extends Component {
                     <video
                       ref={this.localVideoref}
                       style={{
-                        maxWidth: "400px",
+                        maxWidth: "500px",
+                        width: "480px",
                         border: "2px blue solid",
                         borderRadius: "40px",
                       }}
@@ -794,16 +767,20 @@ class Video extends Component {
                           playsInline="true"
                           style={{
                             border: "2px red solid",
-                            width: "400px",
+                            width: "480px",
                             borderRadius: "40px",
                           }}
                         ></video>
+                        {console.log(
+                          this.state.participantInfoMapping,
+                          this.localVideoref.current.getAttribute("srcObject")
+                        )}
                       </Grid>
                     );
                   })}
                 </Grid>
+                {/* <AllParticipants participantKey={this.participantInfoMapping} /> */}
               </Container>
-           
             </div>
           </div>
         )}
