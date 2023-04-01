@@ -36,10 +36,9 @@ function Product(props) {
   const [modalOpen, setisModalOpen] = useState(false);
   const [meetDetails, setMeetDetails] = useState(false);
   function videocall() {
-    const uuid = uuidV4();
-    // setMeetDetails(!meetDetails)
+    setMeetDetails(!meetDetails)
     // window.location.href = `/create/${uuid}`;
-    window.location.href = `/call/${uuid}`;
+    // window.location.href = `/call/${uuid}`;
   }
   function login() {
     setisModalOpen(!modalOpen);

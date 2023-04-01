@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
-import axios from "axios"
-const config = require('../../config')
+import axios from "axios";
+import { Stack } from "@mui/material";
+import DropDown from "./DropDownPeople";
+const { v4: uuidV4 } = require("uuid");
+const config = require("../../config");
 const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
@@ -26,115 +29,49 @@ const useStyles = makeStyles((theme) => ({
 const Form = ({ handleClose, handleClose2 }) => {
   const classes = useStyles();
   // create state variables for each input
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loginMode, setLoginMode] = useState(false);
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(firstName, lastName, email, password);
-    axios.post(`${config.REACT_APP_AUTHURI}/auth/signup`, {
-      name: firstName,
-      email: email,
-      password: password,
-      passwordConfirm: password
-    }).then((response) => {
-      console.log(response)
-      if (response.status === 200)
-        window.alert("verfication mail has been sent")
-      else window.alert("something went wrong!")
-
-    }).catch((errr) => {
-      console.log(errr)
-    })
-    handleClose2();
-  };
-  const handleLogin = (e) => {
-    e.preventDefault();
-    loginMode && axios.post(`${config.REACT_APP_AUTHURI}/auth/login`, {
-      email: email,
-      password: password,
-    }, { withCredentials: true }).then((response) => {
-      console.log(response)
-      if (response.status === 200)
-        window.alert("successfully logged in")
-      else window.alert("something went wrong!")
-      handleClose2();
-
-    }).catch((errr) => {
-      console.log(errr)
-    })
-    setLoginMode(true);
+  const [typeOfMeet, settypeOfMeet] = useState("all");
+  const [uuid, setUUID] = useState(uuidV4());
+  const handleAllowAllEmail = async () => {
+    const result = await axios.post(
+      `${config.REACT_APP_BACKENDURI}/createRoom`,
+      {
+        roomId: uuid,
+        allowAll: true,
+      },
+      { withCredentials: true }
+    );
+    if (result.status == 200) {
+      window.location.href = `/call/${uuid}`;
+    } else {
+      window.alert("Something went wrong");
+    }
   };
   return (
-    <form className={classes.root} onSubmit={handleSubmit}>
-      {!loginMode && (
-        <TextField
-          label="First Name"
-          variant="filled"
-          required
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-        />
-      )}{" "}
-      {!loginMode && (
-        <TextField
-          label="Last Name"
-          variant="filled"
-          required
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-        />
-      )}
-      <TextField
-        label="Email"
-        variant="filled"
-        type="email"
-        required
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <TextField
-        label="Password"
-        variant="filled"
-        type="password"
-        required
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <Button
-        type="submit"
-        fullWidth={true}
-        variant="contained"
-        onClick={handleLogin}
-      >
-        {!loginMode ? `Already a user ? Log in` : `Log In`}
-      </Button>
-      {!loginMode && (
+    <div>
+      <Stack spacing={3}>
         <Button
-          type="submit"
-          variant="contained"
-          fullWidth={"full"}
           color="primary"
-        >
-          Signup
-        </Button>
-      )}
-      {loginMode && (
-        <Button
           variant="contained"
-          fullWidth={"full"}
-          color="primary"
           onClick={(e) => {
             e.preventDefault();
-            setLoginMode(false);
+            settypeOfMeet("all");
+            handleAllowAllEmail();
           }}
         >
-          Not Registered?
+          Anyone can join?
         </Button>
-      )}
-    </form>
+        <Button
+          color="primary"
+          variant="contained"
+          onClick={() => {
+            settypeOfMeet("select");
+          }}
+        >
+          Choose who can join
+        </Button>
+        {typeOfMeet === "select" && <DropDown roomId={uuid} />}
+      </Stack>
+    </div>
   );
 };
 

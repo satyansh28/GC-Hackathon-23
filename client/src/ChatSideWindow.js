@@ -37,6 +37,7 @@ export default function TemporaryDrawer(props) {
         return;
       }
       setState({ ...state, [anchor]: open });
+      props.closeModal();
     };
   };
   const list = (anchor) => (

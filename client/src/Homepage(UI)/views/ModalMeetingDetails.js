@@ -38,10 +38,7 @@ export default function BasicModal2(props) {
         <div>
           <Box sx={style}>
             <Typography id="modal-modal-title" variant="h6" component="h2">
-              Login / Sign Up
-            </Typography>
-            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-              You are one step away from being blown away!
+              Meeting Options
             </Typography>
             <Login2 handleClose2={handleClose} />
           </Box>

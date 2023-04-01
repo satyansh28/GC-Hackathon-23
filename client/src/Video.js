@@ -479,6 +479,7 @@ class Video extends Component {
   };
 
   //Functions executed after clicking on the buttons
+  handleCloseModal = () => this.setState({ showModal: false });
   handleVideo = () =>
     this.setState({ video: !this.state.video }, () => this.getUserMedia());
   handleAudio = () =>
@@ -707,6 +708,7 @@ class Video extends Component {
               messages={this.state.messages}
               handleMessage={this.handleMessage}
               sendMessage={this.sendMessage}
+              closeModal={this.handleCloseModal}
             />
             <div className="container">
               <div
@@ -735,7 +737,12 @@ class Video extends Component {
                 component="section"
                 maxWidth="100%"
               >
-                <Grid container rowSpacing={1} alignItems="center" justifyContent="space-evenly">
+                <Grid
+                  container
+                  rowSpacing={1}
+                  alignItems="center"
+                  justifyContent="space-evenly"
+                >
                   <Grid
                     item
                     xs={12}
