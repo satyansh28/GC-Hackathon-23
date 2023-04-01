@@ -3,12 +3,10 @@ import { io } from "socket.io-client";
 import faker from "faker";
 import axios from "axios";
 import { IconButton, Badge, Input, Button } from "@material-ui/core";
-import ReactPlayer from "react-player";
 import VideocamIcon from "@material-ui/icons/Videocam";
 import Container from "@material-ui/core/Container";
 import VideocamOffIcon from "@material-ui/icons/VideocamOff";
 import { experimentalStyled as styled } from "@mui/material/styles";
-import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import ChatSideWindow from "./ChatSideWindow";
 import PresentToAllIcon from "@mui/icons-material/PresentToAll";
@@ -16,19 +14,12 @@ import CancelPresentationIcon from "@mui/icons-material/CancelPresentation";
 import Grid from "@mui/material/Grid";
 import MicIcon from "@material-ui/icons/Mic";
 import MicOffIcon from "@material-ui/icons/MicOff";
-import ScreenShareIcon from "@material-ui/icons/ScreenShare";
-import StopScreenShareIcon from "@material-ui/icons/StopScreenShare";
 import CallEndIcon from "@material-ui/icons/CallEnd";
 import ChatIcon from "@material-ui/icons/Chat";
 import ShareIcon from "@mui/icons-material/Share";
-import FileCopyIcon from "@material-ui/icons/FileCopy";
-import FiberManualRecordIcon from "@material-ui/icons/FiberManualRecord";
-import VideoCallComponent from "./VideoCallComponent";
 import { message } from "antd";
 import "antd/dist/antd.css";
-
-import { Row } from "reactstrap";
-import Modal from "react-bootstrap/Modal";
+import AllParticipants from "./AllParticipants";
 import "bootstrap/dist/css/bootstrap.css";
 import "./Video.css";
 
@@ -66,6 +57,7 @@ class Video extends Component {
     this.videoAvailable = false;
     this.audioAvailable = false;
     this.numberOfStreams = [];
+    this.participantInfoMapping = [];
     this.state = {
       video: false,
       audio: false,
@@ -81,6 +73,7 @@ class Video extends Component {
       fileshare: false,
       record_option: false,
       numberOfStreams: [],
+      participantInfoMapping: [],
       authorized: false,
     };
     connections = {};
@@ -115,6 +108,13 @@ class Video extends Component {
           .then((stream) => {
             window.localStream = stream;
             this.localVideoref.current.srcObject = stream;
+            const prevMapping = this.participantInfoMapping;
+            prevMapping.push({
+              ref: this.localVideoref,
+              userName: this.state.username,
+              video: this.videoAvailable,
+            });
+            this.setState({ participantInfoMapping: prevMapping });
           })
           .then((stream) => {})
           .catch((e) => console.log(e));
@@ -343,8 +343,15 @@ class Video extends Component {
             } else {
               elms = clients.length;
               const prevNumberOfClients = this.numberOfStreams;
+              const prevMapping = this.participantInfoMapping;
+              prevMapping.push({
+                dataSocketItem: socketListId,
+                userName: this.state.username,
+                video: this.videoAvailable,
+              });
               prevNumberOfClients.push(socketListId);
               this.setState({ numberOfStreams: prevNumberOfClients });
+              this.setState({ participantInfoMapping: prevMapping });
               console.log(this.numberOfStreams, "number of streams");
             }
           };
@@ -728,7 +735,7 @@ class Video extends Component {
                 component="section"
                 maxWidth="100%"
               >
-                <Grid container rowSpacing={1} alignItems="stretch">
+                <Grid container rowSpacing={1} alignItems="center" justifyContent="space-evenly">
                   <Grid
                     item
                     xs={12}
@@ -740,8 +747,8 @@ class Video extends Component {
                     <video
                       ref={this.localVideoref}
                       style={{
-                        maxWidth: "400px",
-                        width: "350px",
+                        maxWidth: "500px",
+                        width: "480px",
                         border: "2px blue solid",
                         borderRadius: "40px",
                       }}
@@ -760,14 +767,19 @@ class Video extends Component {
                           playsInline="true"
                           style={{
                             border: "2px red solid",
-                            width: "350px",
+                            width: "480px",
                             borderRadius: "40px",
                           }}
                         ></video>
+                        {console.log(
+                          this.state.participantInfoMapping,
+                          this.localVideoref.current.getAttribute("srcObject")
+                        )}
                       </Grid>
                     );
                   })}
                 </Grid>
+                {/* <AllParticipants participantKey={this.participantInfoMapping} /> */}
               </Container>
             </div>
           </div>
@@ -778,5 +790,3 @@ class Video extends Component {
 }
 
 export default Video;
-
-
