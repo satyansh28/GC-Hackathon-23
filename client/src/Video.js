@@ -17,6 +17,7 @@ import MicOffIcon from "@material-ui/icons/MicOff";
 import CallEndIcon from "@material-ui/icons/CallEnd";
 import ChatIcon from "@material-ui/icons/Chat";
 import ShareIcon from "@mui/icons-material/Share";
+import VideoOptionButton from "./VideoOptionButton";
 import { message } from "antd";
 import "antd/dist/antd.css";
 import AllParticipants from "./AllParticipants";
@@ -779,6 +780,11 @@ class Video extends Component {
                   {this.numberOfStreams.map((item) => {
                     return (
                       <Grid item xs={12} md={6} style={{ maxWidth: "500px" }}>
+                        <VideoOptionButton
+                          handleAdmin={() => {
+                            console.log("admin fnc here");
+                          }}
+                        />
                         <video
                           data-socket={item}
                           id="my-video"
