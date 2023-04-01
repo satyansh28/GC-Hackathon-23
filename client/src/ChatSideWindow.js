@@ -19,6 +19,7 @@ import { TextField } from "@mui/material";
 export default function TemporaryDrawer(props) {
   const isSmallScreen = useMediaQuery("(max-width: 600px)");
   const width = isSmallScreen ? "80%" : "600px";
+ 
   const [state, setState] = React.useState({
     top: false,
     left: false,
@@ -47,8 +48,8 @@ export default function TemporaryDrawer(props) {
       <div
         style={{
           width: "100%",
-          height: "100%",
-          // overflow: "auto",
+          height: "86vh",
+          overflow: "auto"
         }}
       >
         {props.messages.length > 0 ? (
@@ -64,12 +65,14 @@ export default function TemporaryDrawer(props) {
         )}
       </div>
       <div
+
         style={{
           textAlign: "center",
           width: "100%",
         }}
       >
         <TextField
+          
           id="full-width-text-field"
           placeholder="Message"
           InputLabelProps={{ style: { padding: "10px" } }}
@@ -95,6 +98,7 @@ export default function TemporaryDrawer(props) {
                 onClick={() => {
                   props.sendMessage();
                   setMessage("");
+                 
                 }}
                 style={{ cursor: "pointer" }}
               />

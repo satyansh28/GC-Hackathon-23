@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component,useRef } from "react";
 import { io } from "socket.io-client";
 import faker from "faker";
 import axios from "axios";
@@ -81,10 +81,11 @@ class Video extends Component {
       flip:false
     };
     connections = {};
-
+    
     this.getPermissions();
   }
   //Get permissions to access user's camera and microphone
+  
   getPermissions = async () => {
     try {
       await navigator.mediaDevices
@@ -439,14 +440,14 @@ class Video extends Component {
   };
   getDislayMedia = () => {
     if (this.state.screen) {
-      if (navigator.mediaDevices.getDisplayMedia) {
+      //if (navigator.mediaDevices.getDisplayMedia) {
         navigator.mediaDevices
           .getDisplayMedia({ video: true, audio: true })
           .then(this.getDislayMediaSuccess)
           .then((stream) => {})
           .catch((e) => console.log(e));
       }
-    }
+    //}
   };
   getDislayMediaSuccess = (stream) => {
     try {
@@ -591,6 +592,8 @@ class Video extends Component {
     return matchChrome !== null;
   };
 
+
+
   render() {
    
     if (this.state.authorized === false) {
@@ -728,17 +731,18 @@ class Video extends Component {
             <div className="container">
               <div
                 style={{
-                  paddingTop: "20px",
-                  marginBottom: "30px",
+                  paddingTop: "10px",
+                  marginBottom: "20px",
                 }}
               >
-                <Input value={window.location.href} disable="true"></Input>
+                {/* <Input value={window.location.href} disable="true"></Input> */}
                 <Button
+                  size="small"
                   style={{
                     backgroundColor: "#3f51b5",
                     color: "whitesmoke",
                     marginLeft: "20px",
-                    marginTop: "10px",
+                    marginTop: "5px",
                   }}
                   onClick={this.copyUrl}
                   endIcon={<ShareIcon />}
@@ -763,16 +767,16 @@ class Video extends Component {
                     xs={12}
                     md={6}
                     style={{
-                      maxWidth: "500px",
+                      maxWidth: "550px",
                     }}
                   >
                     <video
                       ref={this.localVideoref}
                       style={{
-                        maxWidth: "500px",
-                        width: "480px",
+                     
+                        width: "550px",
                         border: "2px blue solid",
-                        borderRadius: "40px",
+                        borderRadius: "10px",
                       }}
                       autoPlay
                       muted
@@ -780,8 +784,9 @@ class Video extends Component {
                   </Grid>
                   {this.numberOfStreams.map((item) => {
                     return (
-                      <Grid item xs={12} md={6} style={{ maxWidth: "500px" }}>
+                      <Grid item xs={12} md={6} style={{ maxWidth: "550px" }}>
                         {this.state.isAdmin && <VideoOptionButton
+                          style={{left:"10px"}}
                           sockid={item}
                           handleAdmin={(data,sockid) => {
                             this.adminfunc(data,sockid);
@@ -794,8 +799,8 @@ class Video extends Component {
                           playsInline="true"
                           style={{
                             border: "2px red solid",
-                            width: "480px",
-                            borderRadius: "40px",
+                            width: "550px",
+                            borderRadius: "10px",
                           }}
                         ></video>
                         {console.log(

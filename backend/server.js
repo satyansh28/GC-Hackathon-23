@@ -141,7 +141,7 @@ io.on('connection', (socket) => {
 	socket.on('chat-message', (data, sender) => {
 		data = sanitizeString(data)
 		sender = sanitizeString(sender)
-		data=filter.clean(data)
+		data=data?filter.clean(data):data
 		let key
 		let ok = false
 		for (const [k, v] of Object.entries(connections)) {
