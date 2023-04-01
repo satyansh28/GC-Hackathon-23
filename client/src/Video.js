@@ -592,25 +592,7 @@ class Video extends Component {
   };
 
   render() {
-    if (this.isChrome() === false) {
-      return (
-        <div
-          style={{
-            background: "white",
-            width: "30%",
-            height: "auto",
-            padding: "20px",
-            minWidth: "400px",
-            textAlign: "center",
-            margin: "auto",
-            marginTop: "50px",
-            justifyContent: "center",
-          }}
-        >
-          <h2>Error:chromium.rtc() not found!</h2>
-        </div>
-      );
-    }
+   
     if (this.state.authorized === false) {
       return <div>Loading</div>;
     }

@@ -2,7 +2,6 @@ const express = require('express')
 const cookieParser = require('cookie-parser');
 const app = express();
 const path = require("path")
-//let Pusher = require('pusher');
 const http = require('http');
 let xss = require("xss");
 const { default: cluster } = require('cluster');
@@ -12,6 +11,8 @@ require("dotenv").config();
 const mongoose=require("mongoose")
 const MONGODB_URI = process.env.MONGODB_URI;
 const frontend= process.env.FRONTEND;
+const Filter = require('bad-words')
+let filter = new Filter();
 mongoose
   .connect(MONGODB_URI, {
     useNewUrlParser: true,
@@ -34,12 +35,7 @@ let io = require("socket.io")(server, {
   });
 
 
-// let pusher = new Pusher({
-// 	appId: process.env.APPID,
-// 	key: process.env.KEY,
-// 	secret:  process.env.SECRET,
-// 	cluster: process.env.CLUSTER
-//   });
+
   const cors=(req,res,next)=>{
 	res.header("Access-Control-Allow-Origin", process.env.FRONTEND);
 	res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,PATCH,DELETE");
@@ -56,12 +52,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(express.static(__dirname+"/build"))
 app.options("*",(req,res)=>{res.status(200).send()});
-// app.post('/pusher/auth',(req, res)=> {
-//   let socketId = req.body.socket_id;
-//   let channel = req.body.channel_name;
-//   let auth = pusher.authenticate(socketId, channel);
-//   res.send(auth);
-// });
+
 app.post('/createRoom',auth.checkLogin,async(req,res)=>{
 	const room_obj={
 		creatorEmail : req.user.email,
@@ -150,7 +141,7 @@ io.on('connection', (socket) => {
 	socket.on('chat-message', (data, sender) => {
 		data = sanitizeString(data)
 		sender = sanitizeString(sender)
-
+		data=filter.clean(data)
 		let key
 		let ok = false
 		for (const [k, v] of Object.entries(connections)) {
