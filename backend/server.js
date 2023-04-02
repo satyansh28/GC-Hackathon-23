@@ -50,7 +50,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 
-app.use(express.static(__dirname+"/build"))
+//app.use(express.static(__dirname+"/build"))
 app.options("*",(req,res)=>{res.status(200).send()});
 
 app.post('/createRoom',auth.checkLogin,async(req,res)=>{
@@ -75,9 +75,9 @@ app.post('/joinRoom',auth.checkLogin,async(req,res)=>{
 	else
 		res.status(400).send({err:true});
 })
-app.use((req, res) => {
-	res.sendFile(path.join(__dirname+"/build/index.html"))
-})
+// app.use((req, res) => {
+// 	//res.sendFile(path.join(__dirname+"/build/index.html"))
+// })
 
 
 

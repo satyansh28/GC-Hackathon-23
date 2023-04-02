@@ -336,10 +336,10 @@ class Video extends Component {
 
 
       socket.on("user-left", (id) => {
-        let index=this.numberOfStreams.indexOf(id);
-        if(index!==-1)
+        let ind=this.numberOfStreams.indexOf(id);
+        if(ind!==-1)
         {
-          this.numberOfStreams.splice(index);
+          this.numberOfStreams.splice(ind,1);
           this.setState({flip:!this.state.flip})
         }
       });
